@@ -748,18 +748,24 @@ function backToPlans() {
 }
 function selectPlan(plan) {
   selectedPlan = plan;
+  const stripeBasico = 'https://buy.stripe.com/7sY14g1KZckf4CKeU928800';
+  const stripePro = 'https://buy.stripe.com/5kQ6oAfBP83Z7OW27n28801';
+  const link = plan === 'pro' ? stripePro : stripeBasico;
+  // Abre pagamento no Stripe
+  window.open(link, '_blank');
+  // Após abrir o Stripe, mostra tela de cadastro para o cliente criar a conta
   authMode = 'register';
   document.getElementById('selectedPlanBadge').textContent = plan === 'pro' ? '⭐ Plano Pro — R$ 99/mês' : '📋 Plano Básico — R$ 79/mês';
   document.getElementById('selectedPlanBadge').style.display = 'flex';
   document.getElementById('registerFields').style.display = 'block';
-  document.getElementById('authBtn').textContent = 'Criar conta e acessar →';
+  document.getElementById('authBtn').textContent = 'Já paguei — Criar minha conta →';
   document.getElementById('ob-plans').classList.remove('active');
   document.getElementById('ob-auth').classList.add('active');
   document.getElementById('ob-auth').scrollTop = 0;
   document.getElementById('authBackBtn').onclick = backToPlans;
   document.getElementById('authStepLabel').textContent = 'Criar conta';
-  document.getElementById('authTitle').textContent = 'Quase lá!';
-  document.getElementById('authSub').textContent = 'Preencha seus dados para acessar.';
+  document.getElementById('authTitle').textContent = 'Finalize seu cadastro';
+  document.getElementById('authSub').textContent = 'Após o pagamento, crie sua conta para acessar a plataforma.';
 }
 function openWhatsApp() {
   const msg = encodeURIComponent('Olá! Sou cliente do Plano Pro da Elevare Consultoria e preciso de suporte.');
