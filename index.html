@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -8,8 +8,32 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Elevare">
 <title>Elevare Consultoria</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="https://elevare-app-beta.vercel.app/icon-192.png">
 <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=AW-17966735119"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-17966735119"></script>{
+  "name": "Elevare Consultoria",
+  "short_name": "Elevare",
+  "description": "Gestão inteligente para o seu negócio crescer",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d1b2a",
+  "theme_color": "#0d1b2a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://elevare-app-beta.vercel.app/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://elevare-app-beta.vercel.app/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -422,6 +446,38 @@ html,body{height:100%;background:var(--navy);color:var(--white);font-family:'DM 
         <span style="font-size:11px;color:var(--success);">● Entradas</span>
         <span style="font-size:11px;color:var(--danger);">● Saídas</span>
       </div>
+
+      <!-- FRASE MOTIVACIONAL -->
+      <div class="engage-banner" id="fraseBanner">
+        <div class="engage-type">Frase do dia</div>
+        <div class="engage-title" id="fraseTitle">Carregando...</div>
+        <div class="engage-text" id="fraseText"></div>
+        <div class="engage-tag" id="fraseTag">📅 Hoje</div>
+      </div>
+
+      <!-- DICA DE GESTÃO -->
+      <div class="engage-banner" id="dicaBanner" style="border-color:rgba(46,204,113,.2);">
+        <div class="engage-type" style="color:#2ecc71;">💡 Dica de gestão</div>
+        <div class="engage-title" id="dicaTitle">Carregando...</div>
+        <div class="engage-text" id="dicaText"></div>
+        <div class="engage-tag" style="color:#2ecc71;background:rgba(46,204,113,.1);border-color:rgba(46,204,113,.25);" id="dicaTag">Aplicar hoje</div>
+      </div>
+
+      <!-- ALERTA FINANCEIRO -->
+      <div class="engage-banner" id="alertaFinanceiro" style="display:none;border-color:rgba(231,76,60,.2);">
+        <div class="engage-type" style="color:#e74c3c;">⚠️ Alerta financeiro</div>
+        <div class="engage-title" id="alertaTitle"></div>
+        <div class="engage-text" id="alertaText"></div>
+      </div>
+
+      <!-- CHECKLIST SEMANAL -->
+      <div class="checklist-wrap">
+        <div class="checklist-title">✅ Checklist do Empresário</div>
+        <div id="checklistItems"></div>
+        <div class="check-progress"><div class="check-progress-fill" id="checkFill" style="width:0%"></div></div>
+        <div class="check-progress-text" id="checkText">0 de 7 concluídos</div>
+      </div>
+
       <div class="section-title">Alertas</div>
       <div class="alert-card">
         <div class="alert-icon">💡</div>
@@ -563,6 +619,112 @@ html,body{height:100%;background:var(--navy);color:var(--white);font-family:'DM 
 </div>
 
 <script>
+
+// ═══ ENGAGEMENT CONTENT ═══
+const FRASES = [
+  { title: "Trabalhar muito não é o mesmo que trabalhar bem.", text: "Empresários que crescem focam em decisões estratégicas, não apenas em horas trabalhadas.", tag: "🎯 Estratégia" },
+  { title: "O que não é medido, não pode ser melhorado.", text: "Meça seus resultados semanalmente. Pequenas melhorias consistentes geram grandes resultados.", tag: "📊 Gestão" },
+  { title: "Seu time reflete sua liderança.", text: "Antes de cobrar resultado da equipe, pergunte: estou sendo o exemplo que espero deles?", tag: "👥 Liderança" },
+  { title: "Preço baixo não fideliza. Valor sim.", text: "Clientes que compram por preço vão embora pelo preço. Clientes que compram por valor ficam.", tag: "💰 Vendas" },
+  { title: "A crise revela o negócio que você realmente tem.", text: "Empresas sólidas têm reserva de emergência de 3 a 6 meses de custos fixos.", tag: "🛡️ Financeiro" },
+  { title: "Delegar não é perder controle. É multiplicar resultado.", text: "Você não pode crescer fazendo tudo sozinho. Treine, confie e acompanhe.", tag: "🚀 Crescimento" },
+  { title: "Cliente satisfeito é propaganda gratuita.", text: "Invista em experiência pós-venda. O que você faz depois da venda define se o cliente volta.", tag: "🤝 Fidelização" },
+];
+
+const DICAS = [
+  { title: "Faça uma reunião de 15 min toda segunda", text: "Alinhe a semana com sua equipe. Pauta: o que fizemos, o que faremos, o que nos trava.", tag: "Aplicar segunda-feira" },
+  { title: "Revise suas 3 maiores despesas hoje", text: "Liste seus 3 maiores custos fixos e pergunte: consigo reduzir 10% em cada um?", tag: "Aplicar hoje" },
+  { title: "Ligue para 1 cliente inativo esta semana", text: "Um simples 'como posso te ajudar?' pode reativar uma venda que você considerou perdida.", tag: "Aplicar esta semana" },
+  { title: "Defina sua meta de faturamento do mês", text: "Sem meta definida, qualquer número parece bom. Com meta, você sabe se está no caminho.", tag: "Aplicar agora" },
+  { title: "Peça feedback para 3 clientes hoje", text: "Pergunte: o que posso melhorar? As respostas valem mais que qualquer pesquisa de mercado.", tag: "Aplicar hoje" },
+  { title: "Calcule sua margem de lucro real", text: "Receita menos TODOS os custos — incluindo seu salário. Surpreende a maioria dos empresários.", tag: "Aplicar hoje" },
+  { title: "Crie um processo para a tarefa mais repetitiva", text: "Se você faz algo mais de 3x por semana, documente e delegue. Libere seu tempo estratégico.", tag: "Aplicar esta semana" },
+];
+
+const CHECKLIST_ITEMS = [
+  "Registrei todas as entradas de hoje",
+  "Registrei todas as saídas de hoje",
+  "Verifiquei meu saldo atual",
+  "Falei com pelo menos 1 cliente",
+  "Revisei metas da semana",
+  "Dei feedback para alguém da equipe",
+  "Planejei as prioridades de amanhã",
+];
+
+let checklist = JSON.parse(localStorage.getItem('elevare_checklist') || '{}');
+
+function initEngagement() {
+  // Frase do dia baseada no dia do mês
+  const day = new Date().getDate();
+  const frase = FRASES[day % FRASES.length];
+  document.getElementById('fraseTitle').textContent = frase.title;
+  document.getElementById('fraseText').textContent = frase.text;
+  document.getElementById('fraseTag').textContent = frase.tag;
+
+  // Dica baseada no dia da semana
+  const dow = new Date().getDay();
+  const dica = DICAS[dow % DICAS.length];
+  document.getElementById('dicaTitle').textContent = dica.title;
+  document.getElementById('dicaText').textContent = dica.text;
+  document.getElementById('dicaTag').textContent = '💡 ' + dica.tag;
+
+  // Checklist
+  renderChecklist();
+
+  // Alerta financeiro inteligente
+  checkAlertas();
+}
+
+function renderChecklist() {
+  const today = new Date().toDateString();
+  // Reset diário
+  if (localStorage.getItem('elevare_checklist_date') !== today) {
+    checklist = {};
+    localStorage.setItem('elevare_checklist_date', today);
+    localStorage.setItem('elevare_checklist', '{}');
+  }
+
+  const wrap = document.getElementById('checklistItems');
+  wrap.innerHTML = CHECKLIST_ITEMS.map((item, i) => {
+    const done = checklist[i];
+    return `<div class="check-item" onclick="toggleCheck(${i})">
+      <div class="check-box ${done ? 'done' : ''}">${done ? '✓' : ''}</div>
+      <div class="check-text ${done ? 'done' : ''}">${item}</div>
+    </div>`;
+  }).join('');
+
+  const done = Object.values(checklist).filter(Boolean).length;
+  const pct = Math.round((done / CHECKLIST_ITEMS.length) * 100);
+  document.getElementById('checkFill').style.width = pct + '%';
+  document.getElementById('checkText').textContent = `${done} de ${CHECKLIST_ITEMS.length} concluídos — ${pct}%`;
+}
+
+function toggleCheck(i) {
+  checklist[i] = !checklist[i];
+  localStorage.setItem('elevare_checklist', JSON.stringify(checklist));
+  renderChecklist();
+}
+
+function checkAlertas() {
+  if (!transactions || transactions.length === 0) return;
+  const now = new Date(); const m = now.getMonth(), y = now.getFullYear();
+  const mx = transactions.filter(t => { const d=new Date(t.date); return d.getMonth()===m&&d.getFullYear()===y; });
+  const inc = mx.filter(t=>t.type==='income').reduce((s,t)=>s+Number(t.value),0);
+  const exp = mx.filter(t=>t.type==='expense').reduce((s,t)=>s+Number(t.value),0);
+
+  const alertEl = document.getElementById('alertaFinanceiro');
+  if (exp > inc * 0.8 && inc > 0) {
+    alertEl.style.display = 'block';
+    document.getElementById('alertaTitle').textContent = 'Suas saídas estão altas este mês!';
+    document.getElementById('alertaText').textContent = `Suas saídas representam ${Math.round((exp/inc)*100)}% das entradas. Revise seus custos e pergunte ao assistente IA como reduzir.`;
+  }
+  if (mx.length === 0 && now.getDate() > 5) {
+    alertEl.style.display = 'block';
+    document.getElementById('alertaTitle').textContent = 'Nenhuma movimentação registrada!';
+    document.getElementById('alertaText').textContent = 'Você ainda não registrou entradas ou saídas este mês. Mantenha seu controle financeiro atualizado.';
+  }
+}
+
 // ===== SUPABASE =====
 const SUPA_URL = 'https://znkbnkxpgrlhpqduvxar.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpua2Jua3hwZ3JsaHBxZHV2eGFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MzAyNjIsImV4cCI6MjA5NTQwNjI2Mn0.8ROvXqNrwUnU8yqaHyBpPpy8s6EdIyeh4S0W2vPxZHk';
@@ -791,6 +953,7 @@ function startApp() {
   renderTransactions();
   addWelcomeMessage();
   updateEmpresaTab();
+  initEngagement();
 }
 
 function updateWelcome() {
