@@ -1081,7 +1081,7 @@ async function sendMessage(){
   if(chatHistory.length>10) chatHistory=chatHistory.slice(-10);
   try{
     const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-      system:`Você é o Consultor IA da Elevare Consultoria — especialista em gestão para pequenos e médios empresários brasileiros.\nUsuário: ${userProfile?.nome||'Empresário'} | Empresa: ${userProfile?.empresa||'—'} | Setor: ${userProfile?.setor||'—'} | Plano: ${userProfile?.plano||'—'}\nFinanceiro este mês — Entradas: R$ ${inc.toLocaleString('pt-BR',{minimumFractionDigits:2})} | Saídas: R$ ${exp.toLocaleString('pt-BR',{minimumFractionDigits:2})} | Saldo: R$ ${(inc-exp).toLocaleString('pt-BR',{minimumFractionDigits:2})}\nSeja prático, direto e empático. Respostas em português, máximo 200 palavras.`,
+      system:'Você é o Consultor IA da Elevare Consultoria, especialista em gestão para pequenos e médios empresários brasileiros. Seja prático, direto e empático. Respostas em português, máximo 200 palavras.',
       messages:chatHistory
     })});
     const data=await res.json();
