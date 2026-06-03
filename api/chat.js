@@ -1,8 +1,3 @@
-export const config = {
-  api: {
-    bodyParser: true,
-  },
-};
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -20,46 +15,32 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Messages inválido' });
     }
 
-    const history = messages.slice(0, -1).map(m => ({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }]
-    }));
+    const groqMessages = [
+      { role: 'system', content: system || 'Você é um consultor de negócios especializado em pequenas e médias empresas brasileiras.' },
+      ...messages.map(m => ({ role: m.role, content: m.content }))
+    ];
 
-    const lastMessage = messages[messages.length - 1];
-
-    const geminiBody = {
-      system_instruction: { parts: [{ text: system || 'Você é um consultor de negócios.' }] },
-      contents: [
-        ...history,
-        { role: 'user', parts: [{ text: lastMessage.content }] }
-      ],
-      generationConfig: {
-        maxOutputTokens: 1000,
-        temperature: 0.7,
-      }
-    };
-
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return res.status(500).json({ error: 'API key não configurada' });
-    }
-
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(geminiBody)
-      }
-    );
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        messages: groqMessages,
+        max_tokens: 1000,
+        temperature: 0.7
+      })
+    });
 
     const data = await response.json();
 
     if (!response.ok) {
-      return res.status(response.status).json({ error: data.error?.message || 'Erro na API Gemini' });
+      return res.status(response.status).json({ error: data.error?.message || 'Erro na API Groq' });
     }
 
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Não consegui processar.';
+    const text = data.choices?.[0]?.message?.content || 'Não consegui processar. Tente novamente.';
     return res.status(200).json({ text });
 
   } catch (error) {
